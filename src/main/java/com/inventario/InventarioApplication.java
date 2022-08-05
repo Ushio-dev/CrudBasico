@@ -13,6 +13,7 @@ public class InventarioApplication {
 		SpringApplication.run(InventarioApplication.class, args);
 	}
 
+	/*
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
@@ -22,4 +23,5 @@ public class InventarioApplication {
 			}
 		};
 	}
+	*/
 }
