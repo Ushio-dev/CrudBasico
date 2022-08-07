@@ -4,6 +4,7 @@ import com.inventario.dto.RegisterRequest;
 import com.inventario.entity.AppUser;
 import com.inventario.entity.NotificationEmail;
 import com.inventario.entity.VerificationToken;
+import com.inventario.exception.SpringInventoryException;
 import com.inventario.repository.AppUserRepository;
 import com.inventario.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -42,10 +44,10 @@ public class AuthService {
 
         appUserRepository.save(user);
         String token = generateVerificationToken(user);
-        /*
+
         mailService.sendMail(new NotificationEmail("Please activate account",
                 user.getEmail(),"Thank you pls click: " + "http:localhost:8080/api/auth/accountVerification/" + token));
-                */
+
 
     }
 
@@ -59,5 +61,18 @@ public class AuthService {
         verificationTokenRepository.save(veriVerificationToken);
 
         return token;
+    }
+
+    public void verifyAccount(String token) {
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+        verificationToken.orElseThrow(() -> new SpringInventoryException("Invalid Token"));
+        fetchUserAndEnable(verificationToken.get());
+    }
+
+    private void fetchUserAndEnable(VerificationToken verificationToken) {
+        String username = verificationToken.getUser().getUsername();
+        AppUser appUser = appUserRepository.findByUsername(username).orElseThrow(() -> new SpringInventoryException("User not found with name " + username));
+        appUser.setEnabled(true);
+        appUserRepository.save(appUser);
     }
 }
